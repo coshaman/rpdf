@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>랜덤 그럴듯 PDF 생성기</title>
+  <title>랜덤 PDF 생성기</title>
 
   <!-- jsPDF + html2canvas (CDN) -->
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
@@ -12,18 +12,13 @@
   <style>
     :root{
       --bg:#0b0f19;
-      --panel:#0f172a;
-      --card:#0b1220;
       --line:rgba(255,255,255,.10);
       --text:rgba(255,255,255,.92);
       --muted:rgba(255,255,255,.70);
       --muted2:rgba(255,255,255,.55);
       --accent:#7c3aed;
       --accent2:#22c55e;
-      --warn:#f59e0b;
-      --danger:#ef4444;
     }
-
     body{
       margin:0;
       font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic", sans-serif;
@@ -32,18 +27,9 @@
                   var(--bg);
       color:var(--text);
     }
-
-    /* Top UI */
-    .wrap{
-      max-width: 1100px;
-      margin: 32px auto;
-      padding: 0 16px;
-    }
+    .wrap{ max-width: 1100px; margin: 32px auto; padding: 0 16px; }
     .toolbar{
-      display:flex;
-      gap:14px;
-      align-items:center;
-      justify-content:space-between;
+      display:flex; gap:14px; align-items:center; justify-content:space-between;
       background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
       border: 1px solid var(--line);
       border-radius: 18px;
@@ -51,65 +37,46 @@
       box-shadow: 0 10px 30px rgba(0,0,0,.35);
       backdrop-filter: blur(10px);
     }
-    .left{
-      display:flex;
-      flex-direction:column;
-      gap:2px;
-      padding: 2px 4px;
-    }
-    .title{
-      font-size: 16px;
-      font-weight: 800;
-      letter-spacing: -0.3px;
-    }
-    .subtitle{
-      font-size: 12px;
-      color: var(--muted);
-    }
+    .left{ display:flex; flex-direction:column; gap:2px; padding: 2px 4px; }
+    .title{ font-size: 16px; font-weight: 800; letter-spacing: -0.3px; }
+    .subtitle{ font-size: 12px; color: var(--muted); }
 
     .controls{
-      display:flex;
-      gap:10px;
-      flex-wrap: wrap;
-      align-items:center;
-      justify-content:flex-end;
+      display:flex; gap:10px; flex-wrap: wrap; align-items:center; justify-content:flex-end;
     }
-
     .field{
-      display:flex;
-      gap:8px;
-      align-items:center;
+      display:flex; gap:8px; align-items:center;
       background: rgba(255,255,255,.04);
       border: 1px solid var(--line);
       border-radius: 14px;
       padding: 8px 10px;
     }
-    .field label{
-      font-size:12px;
-      color: var(--muted2);
-      user-select:none;
-    }
+    .field label{ font-size:12px; color: var(--muted2); user-select:none; }
     .field input, .field select{
-      appearance:none;
-      border:0;
-      outline:0;
-      background: transparent;
-      color: var(--text);
-      font-weight: 700;
-      font-size: 12px;
-      min-width: 68px;
+      appearance:none; border:0; outline:0; background: transparent;
+      color: var(--text); font-weight: 700; font-size: 12px; min-width: 66px;
     }
+    .toggle{
+      display:flex; align-items:center; gap:8px;
+      padding: 8px 10px;
+      border-radius: 14px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.04);
+      user-select:none;
+      font-size:12px;
+      color: var(--muted);
+    }
+    .toggle input{ width:16px; height:16px; accent-color: var(--accent); }
+
     .btn{
-      border:0;
-      outline:0;
-      cursor:pointer;
+      border:0; outline:0; cursor:pointer;
       padding: 10px 14px;
       border-radius: 14px;
       font-weight: 800;
       color: white;
       background: linear-gradient(135deg, var(--accent), #2563eb);
       box-shadow: 0 10px 20px rgba(124,58,237,.25);
-      transition: transform .08s ease, filter .15s ease;
+      transition: transform .08s ease;
       white-space:nowrap;
     }
     .btn:active{ transform: translateY(1px) scale(.99); }
@@ -134,9 +101,7 @@
       gap: 12px;
     }
     .bar{
-      height: 8px;
-      flex: 1;
-      border-radius: 999px;
+      height: 8px; flex: 1; border-radius: 999px;
       background: rgba(255,255,255,.06);
       overflow:hidden;
       border: 1px solid rgba(255,255,255,.08);
@@ -148,19 +113,8 @@
       transition: width .18s ease;
     }
 
-    /* Preview grid */
-    .grid{
-      margin-top: 18px;
-      display:grid;
-      grid-template-columns: 1fr;
-      gap: 18px;
-    }
-    @media (min-width: 950px){
-      .grid{
-        grid-template-columns: 420px 1fr;
-        align-items:start;
-      }
-    }
+    .grid{ margin-top: 18px; display:grid; grid-template-columns: 1fr; gap: 18px; }
+    @media (min-width: 950px){ .grid{ grid-template-columns: 420px 1fr; align-items:start; } }
 
     .panel{
       background: rgba(255,255,255,.03);
@@ -172,274 +126,14 @@
     .panel .hd{
       padding: 12px 14px;
       border-bottom: 1px solid var(--line);
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap: 10px;
+      display:flex; align-items:center; justify-content:space-between; gap: 10px;
       background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
     }
     .panel .hd b{ font-size: 12px; letter-spacing: -0.2px; }
     .panel .hd span{ font-size: 12px; color: var(--muted2); }
     .panel .bd{ padding: 12px 14px; color: var(--muted); font-size: 12px; line-height: 1.55; }
 
-    /* A4 pages container for rendering */
-    #pagesHost{
-      position: absolute;
-      left: -99999px;
-      top: 0;
-      width: 794px; /* ~A4 @96dpi, close enough */
-    }
-
-    .page{
-      width: 794px;
-      height: 1123px;
-      background: white;
-      color: #0b1220;
-      position: relative;
-      overflow:hidden;
-      box-sizing: border-box;
-      border-radius: 10px;
-      margin: 0 0 18px 0;
-      box-shadow: 0 10px 30px rgba(0,0,0,.12);
-      padding: 38px 44px;
-    }
-
-    /* page chrome */
-    .p-top{
-      display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      gap: 12px;
-      padding-bottom: 10px;
-      border-bottom: 1px solid rgba(15,23,42,.10);
-    }
-    .brand{
-      display:flex;
-      gap: 10px;
-      align-items:center;
-    }
-    .logo{
-      width: 30px;
-      height: 30px;
-      border-radius: 10px;
-      background: linear-gradient(135deg, rgba(124,58,237,.95), rgba(34,197,94,.85));
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,.7);
-    }
-    .brand .meta{
-      display:flex;
-      flex-direction:column;
-      gap: 2px;
-    }
-    .brand .meta .name{
-      font-weight: 900;
-      letter-spacing: -0.3px;
-      font-size: 14px;
-    }
-    .brand .meta .tag{
-      font-size: 11px;
-      color: rgba(15,23,42,.65);
-    }
-    .docmeta{
-      text-align:right;
-      display:flex;
-      flex-direction:column;
-      gap: 4px;
-      font-size: 11px;
-      color: rgba(15,23,42,.65);
-    }
-    .docmeta .pill{
-      display:inline-block;
-      padding: 4px 8px;
-      border-radius: 999px;
-      background: rgba(124,58,237,.10);
-      color: rgba(88,28,135,.95);
-      font-weight: 800;
-      align-self:flex-end;
-    }
-
-    .p-title{
-      margin-top: 14px;
-      display:flex;
-      align-items:flex-end;
-      justify-content:space-between;
-      gap: 14px;
-    }
-    .p-title h1{
-      margin:0;
-      font-size: 22px;
-      letter-spacing: -0.6px;
-      line-height: 1.1;
-    }
-    .p-title .sub{
-      margin-top: 6px;
-      font-size: 12px;
-      color: rgba(15,23,42,.65);
-      max-width: 520px;
-    }
-
-    .badges{
-      display:flex;
-      gap: 6px;
-      flex-wrap:wrap;
-      justify-content:flex-end;
-    }
-    .badge{
-      font-size: 10px;
-      font-weight: 800;
-      padding: 5px 8px;
-      border-radius: 999px;
-      border: 1px solid rgba(15,23,42,.12);
-      background: rgba(15,23,42,.03);
-      color: rgba(15,23,42,.78);
-    }
-    .badge.accent{ background: rgba(124,58,237,.10); color: rgba(88,28,135,.95); border-color: rgba(124,58,237,.18); }
-    .badge.green{ background: rgba(34,197,94,.10); color: rgba(20,83,45,.95); border-color: rgba(34,197,94,.18); }
-    .badge.warn{ background: rgba(245,158,11,.12); color: rgba(120,53,15,.95); border-color: rgba(245,158,11,.22); }
-
-    .content{
-      margin-top: 16px;
-      display:grid;
-      grid-template-columns: 1.25fr .75fr;
-      gap: 14px;
-    }
-    .card{
-      border: 1px solid rgba(15,23,42,.10);
-      border-radius: 14px;
-      padding: 12px 12px;
-      background: linear-gradient(180deg, rgba(15,23,42,.02), rgba(15,23,42,.01));
-    }
-    .card h2{
-      margin:0 0 8px 0;
-      font-size: 12px;
-      letter-spacing: -0.2px;
-      color: rgba(15,23,42,.82);
-    }
-    .card p{
-      margin:0;
-      font-size: 11px;
-      line-height: 1.55;
-      color: rgba(15,23,42,.70);
-    }
-
-    .twoCol{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-top: 10px;
-    }
-
-    .table{
-      width:100%;
-      border-collapse: collapse;
-      font-size: 10.5px;
-      margin-top: 10px;
-      overflow:hidden;
-      border-radius: 12px;
-      border: 1px solid rgba(15,23,42,.10);
-    }
-    .table th, .table td{
-      padding: 8px 8px;
-      border-bottom: 1px solid rgba(15,23,42,.08);
-    }
-    .table th{
-      text-align:left;
-      font-weight: 900;
-      color: rgba(15,23,42,.82);
-      background: rgba(15,23,42,.03);
-    }
-    .table td{
-      color: rgba(15,23,42,.72);
-    }
-
-    .chart{
-      height: 170px;
-      border-radius: 12px;
-      border: 1px solid rgba(15,23,42,.10);
-      background: radial-gradient(260px 120px at 30% 20%, rgba(124,58,237,.18), transparent 60%),
-                  radial-gradient(240px 120px at 85% 35%, rgba(34,197,94,.16), transparent 60%),
-                  rgba(15,23,42,.02);
-      position: relative;
-      overflow:hidden;
-    }
-    .spark{
-      position:absolute;
-      left: 10px;
-      right: 10px;
-      bottom: 10px;
-      top: 10px;
-    }
-
-    .sideStack{
-      display:flex;
-      flex-direction:column;
-      gap: 10px;
-    }
-    .kpi{
-      display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      gap: 10px;
-    }
-    .kpi .v{
-      font-size: 18px;
-      font-weight: 1000;
-      letter-spacing: -0.8px;
-    }
-    .kpi .l{
-      font-size: 10.5px;
-      font-weight: 900;
-      color: rgba(15,23,42,.70);
-    }
-    .kpi .d{
-      font-size: 10px;
-      color: rgba(15,23,42,.55);
-      margin-top: 3px;
-    }
-    .miniBar{
-      height: 8px;
-      border-radius: 999px;
-      background: rgba(15,23,42,.06);
-      border: 1px solid rgba(15,23,42,.08);
-      overflow:hidden;
-      margin-top: 8px;
-    }
-    .miniBar > div{
-      height:100%;
-      width: 0%;
-      background: linear-gradient(90deg, rgba(124,58,237,.75), rgba(34,197,94,.65));
-    }
-
-    .footer{
-      position:absolute;
-      left: 44px;
-      right: 44px;
-      bottom: 26px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap: 10px;
-      padding-top: 10px;
-      border-top: 1px solid rgba(15,23,42,.10);
-      font-size: 10px;
-      color: rgba(15,23,42,.55);
-    }
-    .watermark{
-      position:absolute;
-      right: -40px;
-      top: 80px;
-      transform: rotate(18deg);
-      font-size: 54px;
-      font-weight: 1000;
-      letter-spacing: -2px;
-      color: rgba(15,23,42,.05);
-      user-select:none;
-      pointer-events:none;
-      white-space:nowrap;
-    }
-
-    .previewFrame{
-      padding: 12px;
-    }
+    .previewFrame{ padding: 12px; }
     .thumb{
       width:100%;
       aspect-ratio: 794 / 1123;
@@ -452,43 +146,199 @@
       color: rgba(255,255,255,.55);
       font-size: 12px;
     }
-    .smallNote{
-      color: rgba(255,255,255,.55);
-      font-size: 12px;
-      margin-top: 10px;
-      line-height: 1.55;
+    .smallNote{ color: rgba(255,255,255,.55); font-size: 12px; margin-top: 10px; line-height: 1.55; }
+
+    /* Hidden render host */
+    #pagesHost{ position: absolute; left: -99999px; top: 0; width: 794px; }
+    .rendering *{ animation: none !important; transition: none !important; }
+
+    /* A4 page base */
+    .page{
+      width: 794px; height: 1123px;
+      background: white; color: #0b1220;
+      position: relative; overflow:hidden; box-sizing: border-box;
+      border-radius: 10px;
+      margin: 0 0 18px 0;
+      padding: 38px 44px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.12);
     }
 
-    /* Reduce animation/transition during render */
-    .rendering *{
-      animation: none !important;
-      transition: none !important;
+    /* Shared components */
+    .p-top{ display:flex; align-items:flex-start; justify-content:space-between; gap: 12px; padding-bottom: 10px; border-bottom: 1px solid rgba(15,23,42,.10); }
+    .brand{ display:flex; gap: 10px; align-items:center; }
+    .logo{ width: 30px; height: 30px; border-radius: 10px; background: linear-gradient(135deg, rgba(124,58,237,.95), rgba(34,197,94,.85)); box-shadow: inset 0 0 0 1px rgba(255,255,255,.7); }
+    .brand .meta{ display:flex; flex-direction:column; gap: 2px; }
+    .brand .meta .name{ font-weight: 900; letter-spacing: -0.3px; font-size: 14px; }
+    .brand .meta .tag{ font-size: 11px; color: rgba(15,23,42,.65); }
+    .docmeta{ text-align:right; display:flex; flex-direction:column; gap: 4px; font-size: 11px; color: rgba(15,23,42,.65); }
+    .docmeta .pill{ display:inline-block; padding: 4px 8px; border-radius: 999px; background: rgba(124,58,237,.10); color: rgba(88,28,135,.95); font-weight: 800; align-self:flex-end; }
+    .p-title{ margin-top: 14px; display:flex; align-items:flex-end; justify-content:space-between; gap: 14px; }
+    .p-title h1{ margin:0; font-size: 22px; letter-spacing: -0.6px; line-height: 1.1; }
+    .p-title .sub{ margin-top: 6px; font-size: 12px; color: rgba(15,23,42,.65); max-width: 520px; }
+    .badges{ display:flex; gap: 6px; flex-wrap:wrap; justify-content:flex-end; }
+    .badge{ font-size: 10px; font-weight: 800; padding: 5px 8px; border-radius: 999px; border: 1px solid rgba(15,23,42,.12); background: rgba(15,23,42,.03); color: rgba(15,23,42,.78); }
+    .badge.accent{ background: rgba(124,58,237,.10); color: rgba(88,28,135,.95); border-color: rgba(124,58,237,.18); }
+    .badge.green{ background: rgba(34,197,94,.10); color: rgba(20,83,45,.95); border-color: rgba(34,197,94,.18); }
+
+    .card{ border: 1px solid rgba(15,23,42,.10); border-radius: 14px; padding: 12px 12px; background: linear-gradient(180deg, rgba(15,23,42,.02), rgba(15,23,42,.01)); }
+    .card h2{ margin:0 0 8px 0; font-size: 12px; letter-spacing: -0.2px; color: rgba(15,23,42,.82); }
+    .card p{ margin:0; font-size: 11px; line-height: 1.55; color: rgba(15,23,42,.70); }
+
+    .table{ width:100%; border-collapse: collapse; font-size: 10.5px; margin-top: 10px; overflow:hidden; border-radius: 12px; border: 1px solid rgba(15,23,42,.10); }
+    .table th, .table td{ padding: 8px 8px; border-bottom: 1px solid rgba(15,23,42,.08); }
+    .table th{ text-align:left; font-weight: 900; color: rgba(15,23,42,.82); background: rgba(15,23,42,.03); }
+    .table td{ color: rgba(15,23,42,.72); }
+
+    .chart{
+      height: 170px; border-radius: 12px; border: 1px solid rgba(15,23,42,.10);
+      background: radial-gradient(260px 120px at 30% 20%, rgba(124,58,237,.18), transparent 60%),
+                  radial-gradient(240px 120px at 85% 35%, rgba(34,197,94,.16), transparent 60%),
+                  rgba(15,23,42,.02);
+      position: relative; overflow:hidden;
+    }
+    .spark{ position:absolute; left: 10px; right: 10px; bottom: 10px; top: 10px; }
+
+    .footer{
+      position:absolute; left: 44px; right: 44px; bottom: 26px;
+      display:flex; align-items:center; justify-content:space-between; gap: 10px;
+      padding-top: 10px; border-top: 1px solid rgba(15,23,42,.10);
+      font-size: 10px; color: rgba(15,23,42,.55);
+    }
+    .watermark{
+      position:absolute; right: -40px; top: 80px;
+      transform: rotate(18deg);
+      font-size: 54px; font-weight: 1000; letter-spacing: -2px;
+      color: rgba(15,23,42,.05);
+      user-select:none; pointer-events:none; white-space:nowrap;
+    }
+
+    /* Template-specific tweaks */
+    .tpl-1 .page{ padding: 44px 52px; }
+    .tpl-2 .page{ padding: 34px 38px; }
+    .tpl-3 .page{ padding: 40px 44px; }
+    .tpl-4 .page{ padding: 38px 44px; }
+    .tpl-5 .page{ padding: 38px 44px; }
+
+    /* Template 2: side rail */
+    .rail{
+      position:absolute; left:0; top:0; bottom:0; width: 70px;
+      background: linear-gradient(180deg, rgba(124,58,237,.20), rgba(34,197,94,.14));
+      border-right: 1px solid rgba(15,23,42,.10);
+    }
+    .rail .railText{
+      position:absolute; left: 10px; top: 120px;
+      transform: rotate(-90deg);
+      font-size: 12px; font-weight: 900;
+      letter-spacing: 1.0px;
+      color: rgba(15,23,42,.50);
+      white-space:nowrap;
+    }
+
+    /* Template 4: cover-ish */
+    .coverHero{
+      margin-top: 38px;
+      padding: 18px 18px;
+      border-radius: 18px;
+      border: 1px solid rgba(15,23,42,.10);
+      background: radial-gradient(420px 220px at 20% 20%, rgba(124,58,237,.20), transparent 60%),
+                  radial-gradient(420px 220px at 90% 30%, rgba(34,197,94,.16), transparent 60%),
+                  rgba(15,23,42,.02);
+    }
+    .coverHero h3{
+      margin:0 0 8px 0;
+      font-size: 14px;
+      letter-spacing: -0.3px;
+      color: rgba(15,23,42,.82);
+    }
+    .coverGrid{
+      margin-top: 12px;
+      display:grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+    }
+    .miniCard{
+      border: 1px solid rgba(15,23,42,.10);
+      border-radius: 14px;
+      padding: 12px 12px;
+      background: rgba(255,255,255,.55);
+    }
+    .miniCard b{ display:block; font-size: 11px; color: rgba(15,23,42,.80); }
+    .miniCard span{ display:block; margin-top: 5px; font-size: 10px; color: rgba(15,23,42,.58); line-height: 1.4; }
+
+    /* Template 5: memo blocks */
+    .memoRow{
+      margin-top: 14px;
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .memo{
+      border: 1px dashed rgba(15,23,42,.18);
+      border-radius: 16px;
+      padding: 12px 12px;
+      background: rgba(15,23,42,.02);
+    }
+    .memo h4{
+      margin:0 0 8px 0;
+      font-size: 11px;
+      letter-spacing: -0.2px;
+      color: rgba(15,23,42,.80);
+    }
+    .memo p{
+      margin:0;
+      font-size: 10.8px;
+      color: rgba(15,23,42,.65);
+      line-height: 1.55;
     }
   </style>
 </head>
+
 <body>
   <div class="wrap">
     <div class="toolbar">
       <div class="left">
         <div class="title">랜덤 “그럴듯하지만 내용은 랜덤” PDF 생성기</div>
-        <div class="subtitle">10~20쪽 / 텍스트+차트+표+뱃지 등 레이아웃 포함 — 모두 브라우저에서 생성</div>
+        <div class="subtitle">멀티 파일 다운로드(Zip 없이) · 템플릿 5종 · 저해상도 모드</div>
       </div>
 
       <div class="controls">
         <div class="field">
-          <label for="minPages">페이지</label>
+          <label>페이지</label>
           <input id="minPages" type="number" value="10" min="1" max="50" />
           <span style="color:var(--muted2);font-size:12px;">~</span>
           <input id="maxPages" type="number" value="20" min="1" max="50" />
         </div>
 
         <div class="field">
-          <label for="seed">seed</label>
+          <label>문서 수</label>
+          <input id="docCount" type="number" value="3" min="1" max="30" />
+        </div>
+
+        <div class="field">
+          <label>템플릿</label>
+          <select id="templateMode">
+            <option value="random" selected>랜덤(문서별)</option>
+            <option value="1">템플릿 1</option>
+            <option value="2">템플릿 2</option>
+            <option value="3">템플릿 3</option>
+            <option value="4">템플릿 4</option>
+            <option value="5">템플릿 5</option>
+          </select>
+        </div>
+
+        <label class="toggle" title="빠르게 생성(품질/용량 감소)">
+          <input id="lowRes" type="checkbox" />
+          저해상도(빠름)
+        </label>
+
+        <div class="field">
+          <label>seed</label>
           <input id="seed" type="text" value="" placeholder="비우면 랜덤" />
         </div>
 
-        <button class="btn secondary" id="btnPreview">미리보기 생성</button>
-        <button class="btn" id="btnDownload">PDF 생성 & 다운로드</button>
+        <button class="btn secondary" id="btnPreview">미리보기(1p)</button>
+        <button class="btn secondary" id="btnOne">PDF 1개 다운로드</button>
+        <button class="btn" id="btnMulti">여러 PDF 다운로드</button>
       </div>
     </div>
 
@@ -501,17 +351,14 @@
     <div class="grid">
       <div class="panel">
         <div class="hd">
-          <b>설명</b>
-          <span>랜덤 레이아웃</span>
+          <b>주의</b>
+          <span>브라우저 다운로드 정책</span>
         </div>
         <div class="bd">
-          <div>• 미리보기는 “첫 페이지만” 렌더링합니다.</div>
-          <div>• PDF 생성은 페이지 수에 따라 시간이 조금 걸릴 수 있습니다(브라우저에서 캡처).</div>
-          <div>• 출력 품질: 기본 2x 캡처(scale)로 설정되어 있습니다.</div>
-          <div class="smallNote">
-            팁: 내용이 “그럴듯”하도록 제목/요약/표/지표/스파크라인/워터마크를 섞습니다.
-            seed를 넣으면 같은 결과를 재현할 수 있습니다.
-          </div>
+          <div>• 여러 파일 연속 다운로드는 브라우저가 차단할 수 있습니다.</div>
+          <div>• 막히면: 주소창 왼쪽 🔒 → 사이트 설정 → <b>자동 다운로드 허용</b></div>
+          <div>• 저해상도는 빠르지만 텍스트 선명도가 떨어질 수 있습니다.</div>
+          <div class="smallNote">권장 설정: 문서 3~5개, 페이지 10~15p</div>
         </div>
       </div>
 
@@ -527,11 +374,10 @@
     </div>
   </div>
 
-  <!-- Hidden render host -->
   <div id="pagesHost" aria-hidden="true"></div>
 
   <script>
-    // ---------- deterministic RNG (mulberry32 + xmur3) ----------
+    // ---------- RNG ----------
     function xmur3(str) {
       let h = 1779033703 ^ str.length;
       for (let i = 0; i < str.length; i++) {
@@ -563,39 +409,26 @@
     const pick = (rand, arr) => arr[Math.floor(rand() * arr.length)];
     const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
 
-    // ---------- random content generators ----------
-    const WORDS = [
-      "정합성","지표","거버넌스","프레임워크","전략","로드맵","리스크","정책","가정","분석","관측",
-      "세그먼트","우선순위","컨텍스트","인사이트","메트릭","베이스라인","가이드라인","권고안","요약",
-      "전환","상호작용","스코프","근거","가설","검증","프로토콜","전술","운영","개선","아키텍처",
-      "컴플라이언스","가시성","효율","추적성","오케스트레이션","표준","정렬","점검","컨트롤"
-    ];
-    const TOPICS = [
-      "운영 리포트","내부 점검 메모","분기 요약","프로젝트 브리프","정책 초안","리스크 평가",
-      "성과 대시보드","실행 계획","조직 운영 가이드","품질 지표 리뷰","프로세스 정리","대응 시나리오"
-    ];
+    // ---------- Random content ----------
+    const WORDS = ["정합성","지표","거버넌스","프레임워크","전략","로드맵","리스크","정책","가정","분석","관측","세그먼트","우선순위","컨텍스트","인사이트","메트릭","베이스라인","가이드라인","권고안","요약","전환","상호작용","스코프","근거","가설","검증","프로토콜","전술","운영","개선","아키텍처","컴플라이언스","가시성","효율","추적성","표준","정렬","점검","컨트롤"];
+    const TOPICS = ["운영 리포트","내부 점검 메모","분기 요약","프로젝트 브리프","정책 초안","리스크 평가","성과 대시보드","실행 계획","조직 운영 가이드","품질 지표 리뷰","프로세스 정리","대응 시나리오","요약 보고서","감사 체크리스트","기술 메모"];
     const TAGS = ["CONFIDENTIAL","INTERNAL","DRAFT","REVIEW","FYI","ARCHIVE"];
-    const SECTIONS = ["개요","배경","현황","핵심 관찰","권고 사항","이슈/리스크","대응안","부록","메트릭 정의","변경 이력"];
+    const SECTIONS = ["개요","배경","현황","핵심 관찰","권고 사항","이슈/리스크","대응안","부록","메트릭 정의","변경 이력","모니터링","정책 매핑","요약 표"];
 
     function sentence(rand, minW=8, maxW=14) {
       const n = Math.floor(rand()*(maxW-minW+1))+minW;
       let s = [];
       for(let i=0;i<n;i++) s.push(pick(rand, WORDS));
-      // 약간의 문장스러움 추가
-      const ends = ["입니다.","으로 판단됩니다.","을 전제로 합니다.","에 기반합니다.","이 필요합니다.","을 권고합니다."];
+      const ends = ["입니다.","으로 판단됩니다.","을 전제로 합니다.","에 기반합니다.","이 필요합니다.","을 권고합니다.","을 고려합니다.","을 반영합니다."];
       return s.join(" ") + pick(rand, ends);
     }
     function paragraph(rand, lines=3) {
       return Array.from({length: lines}, ()=>sentence(rand, 9, 16)).join(" ");
     }
     function titleLine(rand) {
-      const a = pick(rand, TOPICS);
-      const b = pick(rand, SECTIONS);
-      const c = pick(rand, WORDS);
-      return `${a} · ${b} (${c})`;
+      return `${pick(rand, TOPICS)} · ${pick(rand, SECTIONS)} (${pick(rand, WORDS)})`;
     }
     function shortDate(rand){
-      // pseudo date like 2026-02-02-ish around
       const year = 2026;
       const month = String(1 + Math.floor(rand()*12)).padStart(2,'0');
       const day = String(1 + Math.floor(rand()*28)).padStart(2,'0');
@@ -607,13 +440,8 @@
       for(let i=0;i<10;i++) s += chars[Math.floor(rand()*chars.length)];
       return s;
     }
-    function pct(rand){
-      return `${Math.floor(rand()*61)+20}%`;
-    }
-    function num(rand){
-      const base = Math.floor(rand()*9000)+1000;
-      return base.toLocaleString("en-US");
-    }
+    function pct(rand){ return `${Math.floor(rand()*61)+20}%`; }
+    function num(rand){ return (Math.floor(rand()*9000)+1000).toLocaleString("en-US"); }
 
     function sparkPath(rand, w=520, h=140, points=18){
       let xStep = w/(points-1);
@@ -621,18 +449,15 @@
       let y = (rand()*0.6+0.2)*h;
       for(let i=0;i<points;i++){
         const x = i*xStep;
-        // random walk with clamp
         y = clamp(y + (rand()-0.5)*h*0.20, h*0.10, h*0.90);
         d += (i===0 ? `M ${x.toFixed(1)} ${y.toFixed(1)}` : ` L ${x.toFixed(1)} ${y.toFixed(1)}`);
       }
       return d;
     }
-
     function makeSparkSvg(rand){
       const w=520, h=140;
       const d1 = sparkPath(rand, w, h, 18);
       const d2 = sparkPath(rand, w, h, 18);
-      // no external CSS: keep inline (PDF render reliability)
       return `
         <svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
           <defs>
@@ -655,150 +480,293 @@
       `;
     }
 
-    function buildPageHTML(rand, pageNo, totalPages, docSeed){
-      const mainTitle = titleLine(rand);
-      const sub = paragraph(rand, 2);
+    // ---------- Templates (5) ----------
+    function commonHeader(rand, docSeed){
       const tag = pick(rand, TAGS);
       const docId = fakeId(rand);
       const date = shortDate(rand);
+      return `
+        <div class="p-top">
+          <div class="brand">
+            <div class="logo"></div>
+            <div class="meta">
+              <div class="name">RandomOps Studio</div>
+              <div class="tag">Generated Report · seed=${docSeed}</div>
+            </div>
+          </div>
+          <div class="docmeta">
+            <div class="pill">${tag}</div>
+            <div>Doc ID: ${docId}</div>
+            <div>Date: ${date}</div>
+          </div>
+        </div>
+      `;
+    }
 
+    function commonTitle(rand){
+      const mainTitle = titleLine(rand);
+      const sub = paragraph(rand, 2);
       const badges = [
         {t: pick(rand, SECTIONS), cls:"accent"},
-        {t: pick(rand, ["PRIORITY","STANDARD","OPTIONAL","FOLLOW-UP","CHECKLIST"]), cls: pick(rand, ["","green","warn"])},
+        {t: pick(rand, ["PRIORITY","STANDARD","OPTIONAL","FOLLOW-UP","CHECKLIST"]), cls: pick(rand, ["","green"])},
         {t: pick(rand, ["v1.0","v1.1","v2.0","rev.A","rev.B"]), cls:""}
       ];
+      return `
+        <div class="p-title">
+          <div>
+            <h1>${mainTitle}</h1>
+            <div class="sub">${sub}</div>
+          </div>
+          <div class="badges">
+            ${badges.map(b=>`<div class="badge ${b.cls}">${b.t}</div>`).join("")}
+          </div>
+        </div>
+      `;
+    }
 
-      const kpis = [
-        {label: pick(rand, ["종합 지수","정합성 점수","리스크 버퍼","처리 효율","가시성"]), value: num(rand), delta: pick(rand, ["+","-"]) + (Math.floor(rand()*18)+1) + "%"},
-        {label: pick(rand, ["전환율","누적 항목","누락률","정책 커버리지","오류율"]), value: pct(rand), delta: pick(rand, ["+","-"]) + (Math.floor(rand()*12)+1) + "%"},
-        {label: pick(rand, ["누적 이벤트","검증 건수","샘플 수","대상 범위","상태 변경"]), value: num(rand), delta: pick(rand, ["+","-"]) + (Math.floor(rand()*25)+1) + "%"},
-      ];
+    function footer(pageNo, totalPages){
+      return `
+        <div class="footer">
+          <div>RandomOps Studio · Generated Placeholder Document</div>
+          <div>Page ${pageNo} / ${totalPages}</div>
+        </div>
+      `;
+    }
 
+    function template1(rand, pageNo, totalPages, docSeed){
       const rows = Array.from({length: 6}, () => ({
         a: pick(rand, ["항목","요건","규칙","사례","조건","기준"]) + " " + pick(rand, ["A","B","C","D","E"]),
         b: pick(rand, ["유지","검토","강화","완화","대체","보류"]),
         c: pick(rand, ["높음","보통","낮음"]),
         d: pct(rand)
       }));
-
-      const rightNote = paragraph(rand, 3);
-      const leftNote = paragraph(rand, 4);
-
-      // mini bars
-      const bar1 = Math.floor(rand()*60)+25;
-      const bar2 = Math.floor(rand()*60)+25;
-      const bar3 = Math.floor(rand()*60)+25;
-
-      const wm = pick(rand, ["INTERNAL","DRAFT","CONFIDENTIAL","REVIEW COPY","FOR DISCUSSION"]);
-
       return `
-        <div class="page" data-page="${pageNo}">
-          <div class="watermark">${wm}</div>
+        <div class="page">
+          <div class="watermark">${pick(rand, ["INTERNAL","DRAFT","CONFIDENTIAL","REVIEW COPY","FOR DISCUSSION"])}</div>
+          ${commonHeader(rand, docSeed)}
+          ${commonTitle(rand)}
 
-          <div class="p-top">
-            <div class="brand">
-              <div class="logo"></div>
-              <div class="meta">
-                <div class="name">RandomOps Studio</div>
-                <div class="tag">Generated Report · seed=${docSeed}</div>
-              </div>
-            </div>
-            <div class="docmeta">
-              <div class="pill">${tag}</div>
-              <div>Doc ID: ${docId}</div>
-              <div>Date: ${date}</div>
-            </div>
-          </div>
-
-          <div class="p-title">
+          <div style="margin-top:16px; display:grid; grid-template-columns: 1.25fr .75fr; gap:14px;">
             <div>
-              <h1>${mainTitle}</h1>
-              <div class="sub">${sub}</div>
-            </div>
-            <div class="badges">
-              ${badges.map(b=>`<div class="badge ${b.cls}">${b.t}</div>`).join("")}
-            </div>
-          </div>
-
-          <div class="content">
-            <div class="leftCol">
               <div class="card">
                 <h2>${pick(rand, ["핵심 요약","상태 개요","관찰 메모","결론 요지"])}</h2>
-                <p>${leftNote}</p>
+                <p>${paragraph(rand, 4)}</p>
 
                 <table class="table">
-                  <thead>
-                    <tr>
-                      <th>항목</th>
-                      <th>처리</th>
-                      <th>등급</th>
-                      <th>진행</th>
-                    </tr>
-                  </thead>
+                  <thead><tr><th>항목</th><th>처리</th><th>등급</th><th>진행</th></tr></thead>
                   <tbody>
-                    ${rows.map(r => `
-                      <tr>
-                        <td>${r.a}</td>
-                        <td>${r.b}</td>
-                        <td>${r.c}</td>
-                        <td>${r.d}</td>
-                      </tr>
-                    `).join("")}
+                    ${rows.map(r=>`<tr><td>${r.a}</td><td>${r.b}</td><td>${r.c}</td><td>${r.d}</td></tr>`).join("")}
                   </tbody>
                 </table>
 
-                <div class="twoCol">
-                  <div class="card">
-                    <h2>${pick(rand, ["권고 사항","후속 액션","체크포인트"])}</h2>
-                    <p>${paragraph(rand, 3)}</p>
-                  </div>
-                  <div class="card">
-                    <h2>${pick(rand, ["주의/리스크","가정/제약","메모"])}</h2>
-                    <p>${paragraph(rand, 3)}</p>
-                  </div>
+                <div style="margin-top:10px; display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                  <div class="card"><h2>권고 사항</h2><p>${paragraph(rand,3)}</p></div>
+                  <div class="card"><h2>주의/리스크</h2><p>${paragraph(rand,3)}</p></div>
                 </div>
               </div>
 
-              <div class="card" style="margin-top: 12px;">
-                <h2>${pick(rand, ["메트릭 스냅샷","추세 보기","간이 시각화"])}</h2>
-                <div class="chart">
-                  ${makeSparkSvg(rand)}
-                </div>
+              <div class="card" style="margin-top:12px;">
+                <h2>메트릭 스냅샷</h2>
+                <div class="chart">${makeSparkSvg(rand)}</div>
                 <p style="margin-top:10px;">${paragraph(rand, 2)}</p>
               </div>
             </div>
 
-            <div class="sideStack">
-              ${kpis.map((k, idx) => `
-                <div class="card">
-                  <div class="kpi">
-                    <div>
-                      <div class="l">${k.label}</div>
-                      <div class="v">${k.value}</div>
-                      <div class="d">변동: ${k.delta} · 기준: ${pick(rand, ["최근 7일","최근 30일","분기 누적","연간 누적"])}</div>
-                      <div class="miniBar"><div style="width:${[bar1,bar2,bar3][idx]}%"></div></div>
-                    </div>
-                    <div class="badge ${pick(rand, ["accent","green","warn",""])}">${pick(rand, ["OK","WATCH","RISK","INFO"])}</div>
-                  </div>
-                </div>
-              `).join("")}
-
-              <div class="card">
-                <h2>${pick(rand, ["간단 메모","실무 체크","부록 코멘트"])}</h2>
-                <p>${rightNote}</p>
-              </div>
+            <div style="display:flex; flex-direction:column; gap:10px;">
+              ${kpiStack(rand)}
+              <div class="card"><h2>간단 메모</h2><p>${paragraph(rand, 3)}</p></div>
             </div>
           </div>
 
-          <div class="footer">
-            <div>RandomOps Studio · Generated Placeholder Document</div>
-            <div>Page ${pageNo} / ${totalPages}</div>
+          ${footer(pageNo, totalPages)}
+        </div>
+      `;
+    }
+
+    function template2(rand, pageNo, totalPages, docSeed){
+      // Side rail layout
+      return `
+        <div class="page">
+          <div class="rail"><div class="railText">${pick(rand, ["OPS","RISK","POLICY","METRICS","AUDIT","BRIEF"])}</div></div>
+          <div style="margin-left:70px;">
+            <div class="watermark">${pick(rand, ["INTERNAL","DRAFT","CONFIDENTIAL","REVIEW COPY"])}</div>
+            ${commonHeader(rand, docSeed)}
+            ${commonTitle(rand)}
+
+            <div style="margin-top:16px; display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+              <div class="card"><h2>요약</h2><p>${paragraph(rand, 5)}</p></div>
+              <div class="card"><h2>핵심 체크</h2><p>${paragraph(rand, 5)}</p></div>
+            </div>
+
+            <div class="card" style="margin-top:12px;">
+              <h2>추세(간이)</h2>
+              <div class="chart">${makeSparkSvg(rand)}</div>
+              <div style="margin-top:10px; display:grid; grid-template-columns: 1fr 1fr 1fr; gap:10px;">
+                ${miniCards(rand, 3)}
+              </div>
+            </div>
+
+            ${footer(pageNo, totalPages)}
           </div>
         </div>
       `;
     }
 
-    // ---------- UI actions ----------
+    function template3(rand, pageNo, totalPages, docSeed){
+      // Dense table layout
+      const rows = Array.from({length: 12}, () => ({
+        a: pick(rand, SECTIONS),
+        b: pick(rand, ["정의","적용","예외","검토","관찰"]),
+        c: pick(rand, ["완료","진행","대기","보류"]),
+        d: pct(rand),
+        e: pick(rand, ["낮음","보통","높음"])
+      }));
+      return `
+        <div class="page">
+          <div class="watermark">${pick(rand, ["AUDIT","REVIEW","DRAFT","INTERNAL"])}</div>
+          ${commonHeader(rand, docSeed)}
+          ${commonTitle(rand)}
+
+          <div style="margin-top:16px; display:grid; grid-template-columns: 1fr; gap:12px;">
+            <div class="card">
+              <h2>정의/항목 매트릭스</h2>
+              <p>${paragraph(rand, 2)}</p>
+              <table class="table">
+                <thead><tr><th>섹션</th><th>타입</th><th>상태</th><th>진행</th><th>리스크</th></tr></thead>
+                <tbody>
+                  ${rows.map(r=>`
+                    <tr><td>${r.a}</td><td>${r.b}</td><td>${r.c}</td><td>${r.d}</td><td>${r.e}</td></tr>
+                  `).join("")}
+                </tbody>
+              </table>
+            </div>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+              <div class="card"><h2>메모</h2><p>${paragraph(rand, 4)}</p></div>
+              <div class="card"><h2>추가 사항</h2><p>${paragraph(rand, 4)}</p></div>
+            </div>
+          </div>
+
+          ${footer(pageNo, totalPages)}
+        </div>
+      `;
+    }
+
+    function template4(rand, pageNo, totalPages, docSeed){
+      // Cover-ish hero
+      const heroTitle = `${pick(rand, ["Executive Summary","Overview","Portfolio Snapshot","Quarterly Brief","Ops Digest"])} · ${pick(rand, ["Q1","Q2","Q3","Q4","H1","H2"])}`
+      return `
+        <div class="page">
+          <div class="watermark">${pick(rand, ["FOR DISCUSSION","DRAFT","INTERNAL"])}</div>
+          ${commonHeader(rand, docSeed)}
+
+          <div class="coverHero">
+            <h3>${heroTitle}</h3>
+            <div style="font-size:22px; font-weight:1000; letter-spacing:-0.6px; color: rgba(15,23,42,.86);">
+              ${titleLine(rand)}
+            </div>
+            <div style="margin-top:8px; font-size:12px; color: rgba(15,23,42,.65);">
+              ${paragraph(rand, 2)}
+            </div>
+            <div class="coverGrid">
+              ${miniCards(rand, 6)}
+            </div>
+          </div>
+
+          <div class="card" style="margin-top:14px;">
+            <h2>추세 요약</h2>
+            <div class="chart">${makeSparkSvg(rand)}</div>
+            <p style="margin-top:10px;">${paragraph(rand, 2)}</p>
+          </div>
+
+          ${footer(pageNo, totalPages)}
+        </div>
+      `;
+    }
+
+    function template5(rand, pageNo, totalPages, docSeed){
+      // Memo blocks
+      return `
+        <div class="page">
+          <div class="watermark">${pick(rand, ["MEMO","NOTE","DRAFT","INTERNAL"])}</div>
+          ${commonHeader(rand, docSeed)}
+          ${commonTitle(rand)}
+
+          <div class="card" style="margin-top:16px;">
+            <h2>메인 메모</h2>
+            <p>${paragraph(rand, 4)}</p>
+          </div>
+
+          <div class="memoRow">
+            ${memoBlocks(rand, 4)}
+          </div>
+
+          <div class="card" style="margin-top:12px;">
+            <h2>간단 시각화</h2>
+            <div class="chart">${makeSparkSvg(rand)}</div>
+          </div>
+
+          ${footer(pageNo, totalPages)}
+        </div>
+      `;
+    }
+
+    function miniCards(rand, n){
+      return Array.from({length:n}).map(()=>`
+        <div class="miniCard">
+          <b>${pick(rand, ["Scope","Metric","Owner","Status","Risk","ETA","Delta","Budget"])}</b>
+          <span>${sentence(rand, 4, 7)}</span>
+        </div>
+      `).join("");
+    }
+
+    function memoBlocks(rand, n){
+      return Array.from({length:n}).map(()=>`
+        <div class="memo">
+          <h4>${pick(rand, ["관찰","결정","후속","이슈","가정","핵심"])}</h4>
+          <p>${paragraph(rand, 2)}</p>
+        </div>
+      `).join("");
+    }
+
+    function kpiStack(rand){
+      const kpis = [
+        {label: pick(rand, ["종합 지수","정합성 점수","리스크 버퍼","처리 효율","가시성"]), value: num(rand), delta: pick(rand, ["+","-"]) + (Math.floor(rand()*18)+1) + "%"},
+        {label: pick(rand, ["전환율","누적 항목","누락률","정책 커버리지","오류율"]), value: pct(rand), delta: pick(rand, ["+","-"]) + (Math.floor(rand()*12)+1) + "%"},
+        {label: pick(rand, ["누적 이벤트","검증 건수","샘플 수","대상 범위","상태 변경"]), value: num(rand), delta: pick(rand, ["+","-"]) + (Math.floor(rand()*25)+1) + "%"},
+      ];
+      const bars = [Math.floor(rand()*60)+25, Math.floor(rand()*60)+25, Math.floor(rand()*60)+25];
+      return kpis.map((k, idx)=>`
+        <div class="card">
+          <div style="display:flex; justify-content:space-between; gap:10px;">
+            <div>
+              <div style="font-size:10.5px; font-weight:900; color: rgba(15,23,42,.70);">${k.label}</div>
+              <div style="font-size:18px; font-weight:1000; letter-spacing:-0.8px;">${k.value}</div>
+              <div style="font-size:10px; color: rgba(15,23,42,.55); margin-top:3px;">
+                변동: ${k.delta} · 기준: ${pick(rand, ["최근 7일","최근 30일","분기 누적","연간 누적"])}
+              </div>
+              <div style="height:8px; border-radius:999px; background: rgba(15,23,42,.06); border: 1px solid rgba(15,23,42,.08); overflow:hidden; margin-top:8px;">
+                <div style="height:100%; width:${bars[idx]}%; background: linear-gradient(90deg, rgba(124,58,237,.75), rgba(34,197,94,.65));"></div>
+              </div>
+            </div>
+            <div class="badge ${pick(rand, ["accent","green",""])}">${pick(rand, ["OK","WATCH","INFO"])}</div>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function renderTemplate(tpl, rand, pageNo, totalPages, docSeed){
+      switch (tpl){
+        case 1: return template1(rand, pageNo, totalPages, docSeed);
+        case 2: return template2(rand, pageNo, totalPages, docSeed);
+        case 3: return template3(rand, pageNo, totalPages, docSeed);
+        case 4: return template4(rand, pageNo, totalPages, docSeed);
+        case 5: return template5(rand, pageNo, totalPages, docSeed);
+        default: return template1(rand, pageNo, totalPages, docSeed);
+      }
+    }
+
+    // ---------- UI state ----------
     const elHost = document.getElementById("pagesHost");
     const elPreview = document.getElementById("previewThumb");
     const elStatus = document.getElementById("statusText");
@@ -819,95 +787,193 @@
       const b = clamp(max, 1, 50);
       return { min: Math.min(a,b), max: Math.max(a,b) };
     }
+    function getDocCount(){
+      const n = parseInt(document.getElementById("docCount").value || "1", 10);
+      return clamp(n, 1, 30);
+    }
+    function getTemplateMode(){
+      const v = document.getElementById("templateMode").value;
+      if (v === "random") return "random";
+      const n = parseInt(v, 10);
+      return [1,2,3,4,5].includes(n) ? n : "random";
+    }
+    function getRenderQuality(){
+      const low = document.getElementById("lowRes").checked;
+      // lowRes: faster + smaller. High: more crisp but slower.
+      return low
+        ? { scale: 1.25, jpeg: 0.78 }
+        : { scale: 2.0,  jpeg: 0.92 };
+    }
 
-    function buildPages({ onlyFirst=false } = {}){
+    function resolveBaseSeed(){
+      const baseSeedInput = document.getElementById("seed").value || "";
+      const { seed: baseSeed } = makeRng(baseSeedInput);
+      return baseSeed;
+    }
+
+    function chooseDocTemplate(baseRand, templateMode){
+      if (templateMode === "random") return 1 + Math.floor(baseRand() * 5);
+      return templateMode;
+    }
+
+    // Build pages into hidden host for a given docSeed + tpl
+    function buildPagesForDoc(docSeed, tpl){
       const { min, max } = getPageRange();
-      const seedInput = document.getElementById("seed").value;
-      const { seed, rand } = makeRng(seedInput);
-      const total = onlyFirst ? 1 : (Math.floor(rand()*(max-min+1))+min);
+      const { rand } = makeRng(docSeed);
+      const total = Math.floor(rand()*(max-min+1))+min;
 
       elHost.innerHTML = "";
       elHost.classList.add("rendering");
 
+      // Wrap pagesHost with a template class for subtle CSS variations
+      elHost.className = "";
+      elHost.id = "pagesHost";
+      elHost.classList.add("tpl-" + tpl);
+
       for(let i=1;i<=total;i++){
-        elHost.insertAdjacentHTML("beforeend", buildPageHTML(rand, i, total, seed));
+        elHost.insertAdjacentHTML("beforeend", renderTemplate(tpl, rand, i, total, docSeed));
       }
 
       elHost.classList.remove("rendering");
-      return { seed, total };
+      return { total };
     }
 
     async function renderFirstPreview(){
-      setProgress(0.02, "미리보기 페이지 생성 중...");
-      const { seed, total } = buildPages({ onlyFirst:true });
+      setProgress(0.02, "미리보기 생성 중...");
+      const baseSeed = resolveBaseSeed();
+      const docSeed = `${baseSeed}-doc1`;
+
+      // pick template using stable docSeed RNG for determinism
+      const { rand: tRand } = makeRng(docSeed + "-tpl");
+      const tplMode = getTemplateMode();
+      const tpl = (tplMode === "random") ? (1 + Math.floor(tRand() * 5)) : tplMode;
+
+      // only build 1 page for preview
+      const { rand } = makeRng(docSeed);
+      elHost.innerHTML = "";
+      elHost.className = "";
+      elHost.id = "pagesHost";
+      elHost.classList.add("tpl-" + tpl);
+      elHost.insertAdjacentHTML("beforeend", renderTemplate(tpl, rand, 1, 1, docSeed));
 
       const first = elHost.querySelector(".page");
-      setProgress(0.15, "미리보기 렌더링 중...");
+      const q = getRenderQuality();
+      setProgress(0.20, `미리보기 렌더링 중... (tpl ${tpl})`);
+      const canvas = await html2canvas(first, { scale: q.scale, backgroundColor: "#ffffff", useCORS: true });
 
-      const canvas = await html2canvas(first, {
-        scale: 1.8,
-        backgroundColor: "#ffffff",
-        useCORS: true
-      });
-
-      const dataUrl = canvas.toDataURL("image/png");
-      elPreview.innerHTML = `<img alt="preview" src="${dataUrl}" style="width:100%;height:auto;border-radius:12px;display:block;">`;
-      setProgress(1, `미리보기 완료 (seed=${seed})`);
+      elPreview.innerHTML = `<img alt="preview" src="${canvas.toDataURL("image/png")}" style="width:100%;height:auto;border-radius:12px;display:block;">`;
+      setProgress(1, `미리보기 완료 (base seed=${baseSeed}, tpl=${tpl})`);
     }
 
-    async function generatePdfAndDownload(){
-      setProgress(0.01, "페이지 생성 중...");
-      const { seed, total } = buildPages({ onlyFirst:false });
-
-      setProgress(0.05, `PDF 생성 준비 중... (총 ${total}p, seed=${seed})`);
-
+    async function createPdfBlobForDoc(docSeed, tpl, progressCb){
       const { jsPDF } = window.jspdf;
       const pdf = new jsPDF({ orientation: "p", unit: "pt", format: "a4" });
+
+      const { total } = buildPagesForDoc(docSeed, tpl);
       const pages = Array.from(elHost.querySelectorAll(".page"));
 
-      // A4 pt size
+      const q = getRenderQuality();
       const pageW = pdf.internal.pageSize.getWidth();
       const pageH = pdf.internal.pageSize.getHeight();
 
       for(let i=0;i<pages.length;i++){
-        const p = pages[i];
-        setProgress(0.05 + 0.90*(i/pages.length), `렌더링 중... (${i+1}/${pages.length})`);
+        if (progressCb) progressCb(i, pages.length);
 
-        // 캡처
-        const canvas = await html2canvas(p, {
-          scale: 2.0,
+        const canvas = await html2canvas(pages[i], {
+          scale: q.scale,
           backgroundColor: "#ffffff",
           useCORS: true
         });
-
-        const imgData = canvas.toDataURL("image/jpeg", 0.92);
+        const imgData = canvas.toDataURL("image/jpeg", q.jpeg);
 
         if (i > 0) pdf.addPage();
-        // Fit to A4
         pdf.addImage(imgData, "JPEG", 0, 0, pageW, pageH, undefined, "FAST");
       }
 
-      setProgress(0.98, "저장 중...");
-      const filename = `random-placeholder-report_${seed}_${total}p.pdf`;
-      pdf.save(filename);
+      const blob = pdf.output("blob");
+      return { blob, pages: total };
+    }
+
+    function downloadBlob(blob, filename){
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      // small delay helps on some browsers when multiple downloads happen
+      setTimeout(()=>URL.revokeObjectURL(url), 1500);
+    }
+
+    function sleep(ms){ return new Promise(r=>setTimeout(r, ms)); }
+
+    async function downloadOne(){
+      setProgress(0.02, "PDF 1개 생성 준비...");
+      const baseSeed = resolveBaseSeed();
+      const docSeed = `${baseSeed}-doc1`;
+
+      // deterministic template per doc
+      const { rand: tRand } = makeRng(docSeed + "-tpl");
+      const tplMode = getTemplateMode();
+      const tpl = (tplMode === "random") ? (1 + Math.floor(tRand() * 5)) : tplMode;
+
+      const { blob, pages } = await createPdfBlobForDoc(docSeed, tpl, (i, n) => {
+        const p = 0.08 + 0.88*(i/n);
+        setProgress(p, `PDF 생성 중... (1개, tpl ${tpl}) (${i+1}/${n}p)`);
+      });
+
+      setProgress(0.98, "다운로드 준비...");
+      const filename = `random-placeholder_${baseSeed}_01of01_tpl${tpl}_${pages}p.pdf`;
+      downloadBlob(blob, filename);
       setProgress(1, `완료: ${filename}`);
     }
 
+    async function downloadManyFiles(){
+      const count = getDocCount();
+      setProgress(0.01, `멀티 PDF 생성 시작 (문서 ${count}개)`);
+
+      const baseSeed = resolveBaseSeed();
+      const tplMode = getTemplateMode();
+
+      for(let d=1; d<=count; d++){
+        const docSeed = `${baseSeed}-doc${d}`;
+
+        // doc-specific template (deterministic)
+        const { rand: tRand } = makeRng(docSeed + "-tpl");
+        const tpl = (tplMode === "random") ? (1 + Math.floor(tRand() * 5)) : tplMode;
+
+        // document progress
+        setProgress(0.03 + 0.90*((d-1)/count), `문서 ${d}/${count} 생성 준비... (tpl ${tpl})`);
+
+        const { blob, pages } = await createPdfBlobForDoc(docSeed, tpl, (i, n) => {
+          const docProgress = (i+1)/n;
+          const overall = 0.03 + 0.90 * (((d-1) + docProgress) / count);
+          setProgress(overall, `문서 ${d}/${count} 생성 중... (tpl ${tpl}) (${i+1}/${n}p)`);
+        });
+
+        const filename = `random-placeholder_${baseSeed}_${String(d).padStart(2,"0")}of${String(count).padStart(2,"0")}_tpl${tpl}_${pages}p.pdf`;
+        downloadBlob(blob, filename);
+
+        // Browser-friendly delay between downloads
+        await sleep(400);
+      }
+
+      setProgress(1, `완료: ${count}개 다운로드 시도 (차단되면 자동 다운로드 허용 필요)`);
+    }
+
+    // Wire up
     document.getElementById("btnPreview").addEventListener("click", () => {
-      renderFirstPreview().catch(err => {
-        console.error(err);
-        setProgress(1, "오류: 미리보기 실패 (콘솔 확인)");
-      });
+      renderFirstPreview().catch(err => { console.error(err); setProgress(1, "오류: 미리보기 실패 (콘솔 확인)"); });
+    });
+    document.getElementById("btnOne").addEventListener("click", () => {
+      downloadOne().catch(err => { console.error(err); setProgress(1, "오류: PDF 생성 실패 (콘솔 확인)"); });
+    });
+    document.getElementById("btnMulti").addEventListener("click", () => {
+      downloadManyFiles().catch(err => { console.error(err); setProgress(1, "오류: 멀티 다운로드 실패 (콘솔 확인)"); });
     });
 
-    document.getElementById("btnDownload").addEventListener("click", () => {
-      generatePdfAndDownload().catch(err => {
-        console.error(err);
-        setProgress(1, "오류: PDF 생성 실패 (콘솔 확인)");
-      });
-    });
-
-    // default: make a preview once on load
+    // Auto preview
     renderFirstPreview().catch(()=>{});
   </script>
 </body>
