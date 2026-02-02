@@ -1,0 +1,914 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>랜덤 그럴듯 PDF 생성기</title>
+
+  <!-- jsPDF + html2canvas (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+  <style>
+    :root{
+      --bg:#0b0f19;
+      --panel:#0f172a;
+      --card:#0b1220;
+      --line:rgba(255,255,255,.10);
+      --text:rgba(255,255,255,.92);
+      --muted:rgba(255,255,255,.70);
+      --muted2:rgba(255,255,255,.55);
+      --accent:#7c3aed;
+      --accent2:#22c55e;
+      --warn:#f59e0b;
+      --danger:#ef4444;
+    }
+
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic", sans-serif;
+      background: radial-gradient(1200px 600px at 20% -10%, rgba(124,58,237,.25), transparent 55%),
+                  radial-gradient(900px 500px at 100% 0%, rgba(34,197,94,.18), transparent 55%),
+                  var(--bg);
+      color:var(--text);
+    }
+
+    /* Top UI */
+    .wrap{
+      max-width: 1100px;
+      margin: 32px auto;
+      padding: 0 16px;
+    }
+    .toolbar{
+      display:flex;
+      gap:14px;
+      align-items:center;
+      justify-content:space-between;
+      background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.03));
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 14px 14px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.35);
+      backdrop-filter: blur(10px);
+    }
+    .left{
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+      padding: 2px 4px;
+    }
+    .title{
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: -0.3px;
+    }
+    .subtitle{
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .controls{
+      display:flex;
+      gap:10px;
+      flex-wrap: wrap;
+      align-items:center;
+      justify-content:flex-end;
+    }
+
+    .field{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      background: rgba(255,255,255,.04);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 8px 10px;
+    }
+    .field label{
+      font-size:12px;
+      color: var(--muted2);
+      user-select:none;
+    }
+    .field input, .field select{
+      appearance:none;
+      border:0;
+      outline:0;
+      background: transparent;
+      color: var(--text);
+      font-weight: 700;
+      font-size: 12px;
+      min-width: 68px;
+    }
+    .btn{
+      border:0;
+      outline:0;
+      cursor:pointer;
+      padding: 10px 14px;
+      border-radius: 14px;
+      font-weight: 800;
+      color: white;
+      background: linear-gradient(135deg, var(--accent), #2563eb);
+      box-shadow: 0 10px 20px rgba(124,58,237,.25);
+      transition: transform .08s ease, filter .15s ease;
+      white-space:nowrap;
+    }
+    .btn:active{ transform: translateY(1px) scale(.99); }
+    .btn.secondary{
+      background: rgba(255,255,255,.06);
+      border: 1px solid var(--line);
+      box-shadow:none;
+      color: var(--text);
+    }
+
+    .status{
+      margin-top: 14px;
+      background: rgba(255,255,255,.03);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 12px 14px;
+      color: var(--muted);
+      font-size: 12px;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap: 12px;
+    }
+    .bar{
+      height: 8px;
+      flex: 1;
+      border-radius: 999px;
+      background: rgba(255,255,255,.06);
+      overflow:hidden;
+      border: 1px solid rgba(255,255,255,.08);
+    }
+    .bar > div{
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, rgba(124,58,237,.9), rgba(34,197,94,.85));
+      transition: width .18s ease;
+    }
+
+    /* Preview grid */
+    .grid{
+      margin-top: 18px;
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 18px;
+    }
+    @media (min-width: 950px){
+      .grid{
+        grid-template-columns: 420px 1fr;
+        align-items:start;
+      }
+    }
+
+    .panel{
+      background: rgba(255,255,255,.03);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      overflow:hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,.25);
+    }
+    .panel .hd{
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+    }
+    .panel .hd b{ font-size: 12px; letter-spacing: -0.2px; }
+    .panel .hd span{ font-size: 12px; color: var(--muted2); }
+    .panel .bd{ padding: 12px 14px; color: var(--muted); font-size: 12px; line-height: 1.55; }
+
+    /* A4 pages container for rendering */
+    #pagesHost{
+      position: absolute;
+      left: -99999px;
+      top: 0;
+      width: 794px; /* ~A4 @96dpi, close enough */
+    }
+
+    .page{
+      width: 794px;
+      height: 1123px;
+      background: white;
+      color: #0b1220;
+      position: relative;
+      overflow:hidden;
+      box-sizing: border-box;
+      border-radius: 10px;
+      margin: 0 0 18px 0;
+      box-shadow: 0 10px 30px rgba(0,0,0,.12);
+      padding: 38px 44px;
+    }
+
+    /* page chrome */
+    .p-top{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap: 12px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid rgba(15,23,42,.10);
+    }
+    .brand{
+      display:flex;
+      gap: 10px;
+      align-items:center;
+    }
+    .logo{
+      width: 30px;
+      height: 30px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, rgba(124,58,237,.95), rgba(34,197,94,.85));
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.7);
+    }
+    .brand .meta{
+      display:flex;
+      flex-direction:column;
+      gap: 2px;
+    }
+    .brand .meta .name{
+      font-weight: 900;
+      letter-spacing: -0.3px;
+      font-size: 14px;
+    }
+    .brand .meta .tag{
+      font-size: 11px;
+      color: rgba(15,23,42,.65);
+    }
+    .docmeta{
+      text-align:right;
+      display:flex;
+      flex-direction:column;
+      gap: 4px;
+      font-size: 11px;
+      color: rgba(15,23,42,.65);
+    }
+    .docmeta .pill{
+      display:inline-block;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: rgba(124,58,237,.10);
+      color: rgba(88,28,135,.95);
+      font-weight: 800;
+      align-self:flex-end;
+    }
+
+    .p-title{
+      margin-top: 14px;
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap: 14px;
+    }
+    .p-title h1{
+      margin:0;
+      font-size: 22px;
+      letter-spacing: -0.6px;
+      line-height: 1.1;
+    }
+    .p-title .sub{
+      margin-top: 6px;
+      font-size: 12px;
+      color: rgba(15,23,42,.65);
+      max-width: 520px;
+    }
+
+    .badges{
+      display:flex;
+      gap: 6px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+    .badge{
+      font-size: 10px;
+      font-weight: 800;
+      padding: 5px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(15,23,42,.12);
+      background: rgba(15,23,42,.03);
+      color: rgba(15,23,42,.78);
+    }
+    .badge.accent{ background: rgba(124,58,237,.10); color: rgba(88,28,135,.95); border-color: rgba(124,58,237,.18); }
+    .badge.green{ background: rgba(34,197,94,.10); color: rgba(20,83,45,.95); border-color: rgba(34,197,94,.18); }
+    .badge.warn{ background: rgba(245,158,11,.12); color: rgba(120,53,15,.95); border-color: rgba(245,158,11,.22); }
+
+    .content{
+      margin-top: 16px;
+      display:grid;
+      grid-template-columns: 1.25fr .75fr;
+      gap: 14px;
+    }
+    .card{
+      border: 1px solid rgba(15,23,42,.10);
+      border-radius: 14px;
+      padding: 12px 12px;
+      background: linear-gradient(180deg, rgba(15,23,42,.02), rgba(15,23,42,.01));
+    }
+    .card h2{
+      margin:0 0 8px 0;
+      font-size: 12px;
+      letter-spacing: -0.2px;
+      color: rgba(15,23,42,.82);
+    }
+    .card p{
+      margin:0;
+      font-size: 11px;
+      line-height: 1.55;
+      color: rgba(15,23,42,.70);
+    }
+
+    .twoCol{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .table{
+      width:100%;
+      border-collapse: collapse;
+      font-size: 10.5px;
+      margin-top: 10px;
+      overflow:hidden;
+      border-radius: 12px;
+      border: 1px solid rgba(15,23,42,.10);
+    }
+    .table th, .table td{
+      padding: 8px 8px;
+      border-bottom: 1px solid rgba(15,23,42,.08);
+    }
+    .table th{
+      text-align:left;
+      font-weight: 900;
+      color: rgba(15,23,42,.82);
+      background: rgba(15,23,42,.03);
+    }
+    .table td{
+      color: rgba(15,23,42,.72);
+    }
+
+    .chart{
+      height: 170px;
+      border-radius: 12px;
+      border: 1px solid rgba(15,23,42,.10);
+      background: radial-gradient(260px 120px at 30% 20%, rgba(124,58,237,.18), transparent 60%),
+                  radial-gradient(240px 120px at 85% 35%, rgba(34,197,94,.16), transparent 60%),
+                  rgba(15,23,42,.02);
+      position: relative;
+      overflow:hidden;
+    }
+    .spark{
+      position:absolute;
+      left: 10px;
+      right: 10px;
+      bottom: 10px;
+      top: 10px;
+    }
+
+    .sideStack{
+      display:flex;
+      flex-direction:column;
+      gap: 10px;
+    }
+    .kpi{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap: 10px;
+    }
+    .kpi .v{
+      font-size: 18px;
+      font-weight: 1000;
+      letter-spacing: -0.8px;
+    }
+    .kpi .l{
+      font-size: 10.5px;
+      font-weight: 900;
+      color: rgba(15,23,42,.70);
+    }
+    .kpi .d{
+      font-size: 10px;
+      color: rgba(15,23,42,.55);
+      margin-top: 3px;
+    }
+    .miniBar{
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(15,23,42,.06);
+      border: 1px solid rgba(15,23,42,.08);
+      overflow:hidden;
+      margin-top: 8px;
+    }
+    .miniBar > div{
+      height:100%;
+      width: 0%;
+      background: linear-gradient(90deg, rgba(124,58,237,.75), rgba(34,197,94,.65));
+    }
+
+    .footer{
+      position:absolute;
+      left: 44px;
+      right: 44px;
+      bottom: 26px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(15,23,42,.10);
+      font-size: 10px;
+      color: rgba(15,23,42,.55);
+    }
+    .watermark{
+      position:absolute;
+      right: -40px;
+      top: 80px;
+      transform: rotate(18deg);
+      font-size: 54px;
+      font-weight: 1000;
+      letter-spacing: -2px;
+      color: rgba(15,23,42,.05);
+      user-select:none;
+      pointer-events:none;
+      white-space:nowrap;
+    }
+
+    .previewFrame{
+      padding: 12px;
+    }
+    .thumb{
+      width:100%;
+      aspect-ratio: 794 / 1123;
+      background: rgba(255,255,255,.03);
+      border: 1px dashed rgba(255,255,255,.18);
+      border-radius: 14px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color: rgba(255,255,255,.55);
+      font-size: 12px;
+    }
+    .smallNote{
+      color: rgba(255,255,255,.55);
+      font-size: 12px;
+      margin-top: 10px;
+      line-height: 1.55;
+    }
+
+    /* Reduce animation/transition during render */
+    .rendering *{
+      animation: none !important;
+      transition: none !important;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="toolbar">
+      <div class="left">
+        <div class="title">랜덤 “그럴듯하지만 내용은 랜덤” PDF 생성기</div>
+        <div class="subtitle">10~20쪽 / 텍스트+차트+표+뱃지 등 레이아웃 포함 — 모두 브라우저에서 생성</div>
+      </div>
+
+      <div class="controls">
+        <div class="field">
+          <label for="minPages">페이지</label>
+          <input id="minPages" type="number" value="10" min="1" max="50" />
+          <span style="color:var(--muted2);font-size:12px;">~</span>
+          <input id="maxPages" type="number" value="20" min="1" max="50" />
+        </div>
+
+        <div class="field">
+          <label for="seed">seed</label>
+          <input id="seed" type="text" value="" placeholder="비우면 랜덤" />
+        </div>
+
+        <button class="btn secondary" id="btnPreview">미리보기 생성</button>
+        <button class="btn" id="btnDownload">PDF 생성 & 다운로드</button>
+      </div>
+    </div>
+
+    <div class="status">
+      <div id="statusText">대기 중</div>
+      <div class="bar" aria-hidden="true"><div id="progressBar"></div></div>
+      <div id="statusRight">0%</div>
+    </div>
+
+    <div class="grid">
+      <div class="panel">
+        <div class="hd">
+          <b>설명</b>
+          <span>랜덤 레이아웃</span>
+        </div>
+        <div class="bd">
+          <div>• 미리보기는 “첫 페이지만” 렌더링합니다.</div>
+          <div>• PDF 생성은 페이지 수에 따라 시간이 조금 걸릴 수 있습니다(브라우저에서 캡처).</div>
+          <div>• 출력 품질: 기본 2x 캡처(scale)로 설정되어 있습니다.</div>
+          <div class="smallNote">
+            팁: 내용이 “그럴듯”하도록 제목/요약/표/지표/스파크라인/워터마크를 섞습니다.
+            seed를 넣으면 같은 결과를 재현할 수 있습니다.
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="hd">
+          <b>미리보기</b>
+          <span>첫 페이지</span>
+        </div>
+        <div class="previewFrame">
+          <div class="thumb" id="previewThumb">미리보기 없음</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden render host -->
+  <div id="pagesHost" aria-hidden="true"></div>
+
+  <script>
+    // ---------- deterministic RNG (mulberry32 + xmur3) ----------
+    function xmur3(str) {
+      let h = 1779033703 ^ str.length;
+      for (let i = 0; i < str.length; i++) {
+        h = Math.imul(h ^ str.charCodeAt(i), 3432918353);
+        h = (h << 13) | (h >>> 19);
+      }
+      return function() {
+        h = Math.imul(h ^ (h >>> 16), 2246822507);
+        h = Math.imul(h ^ (h >>> 13), 3266489909);
+        h ^= h >>> 16;
+        return h >>> 0;
+      };
+    }
+    function mulberry32(a) {
+      return function() {
+        let t = a += 0x6D2B79F5;
+        t = Math.imul(t ^ (t >>> 15), t | 1);
+        t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+        return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+      };
+    }
+    function makeRng(seedStr) {
+      const seed = seedStr && seedStr.trim()
+        ? seedStr.trim()
+        : (crypto?.getRandomValues ? String(crypto.getRandomValues(new Uint32Array(1))[0]) : String(Math.floor(Math.random()*1e9)));
+      const seedFn = xmur3(seed);
+      return { seed, rand: mulberry32(seedFn()) };
+    }
+    const pick = (rand, arr) => arr[Math.floor(rand() * arr.length)];
+    const clamp = (n, a, b) => Math.max(a, Math.min(b, n));
+
+    // ---------- random content generators ----------
+    const WORDS = [
+      "정합성","지표","거버넌스","프레임워크","전략","로드맵","리스크","정책","가정","분석","관측",
+      "세그먼트","우선순위","컨텍스트","인사이트","메트릭","베이스라인","가이드라인","권고안","요약",
+      "전환","상호작용","스코프","근거","가설","검증","프로토콜","전술","운영","개선","아키텍처",
+      "컴플라이언스","가시성","효율","추적성","오케스트레이션","표준","정렬","점검","컨트롤"
+    ];
+    const TOPICS = [
+      "운영 리포트","내부 점검 메모","분기 요약","프로젝트 브리프","정책 초안","리스크 평가",
+      "성과 대시보드","실행 계획","조직 운영 가이드","품질 지표 리뷰","프로세스 정리","대응 시나리오"
+    ];
+    const TAGS = ["CONFIDENTIAL","INTERNAL","DRAFT","REVIEW","FYI","ARCHIVE"];
+    const SECTIONS = ["개요","배경","현황","핵심 관찰","권고 사항","이슈/리스크","대응안","부록","메트릭 정의","변경 이력"];
+
+    function sentence(rand, minW=8, maxW=14) {
+      const n = Math.floor(rand()*(maxW-minW+1))+minW;
+      let s = [];
+      for(let i=0;i<n;i++) s.push(pick(rand, WORDS));
+      // 약간의 문장스러움 추가
+      const ends = ["입니다.","으로 판단됩니다.","을 전제로 합니다.","에 기반합니다.","이 필요합니다.","을 권고합니다."];
+      return s.join(" ") + pick(rand, ends);
+    }
+    function paragraph(rand, lines=3) {
+      return Array.from({length: lines}, ()=>sentence(rand, 9, 16)).join(" ");
+    }
+    function titleLine(rand) {
+      const a = pick(rand, TOPICS);
+      const b = pick(rand, SECTIONS);
+      const c = pick(rand, WORDS);
+      return `${a} · ${b} (${c})`;
+    }
+    function shortDate(rand){
+      // pseudo date like 2026-02-02-ish around
+      const year = 2026;
+      const month = String(1 + Math.floor(rand()*12)).padStart(2,'0');
+      const day = String(1 + Math.floor(rand()*28)).padStart(2,'0');
+      return `${year}-${month}-${day}`;
+    }
+    function fakeId(rand){
+      const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+      let s = "";
+      for(let i=0;i<10;i++) s += chars[Math.floor(rand()*chars.length)];
+      return s;
+    }
+    function pct(rand){
+      return `${Math.floor(rand()*61)+20}%`;
+    }
+    function num(rand){
+      const base = Math.floor(rand()*9000)+1000;
+      return base.toLocaleString("en-US");
+    }
+
+    function sparkPath(rand, w=520, h=140, points=18){
+      let xStep = w/(points-1);
+      let d = "";
+      let y = (rand()*0.6+0.2)*h;
+      for(let i=0;i<points;i++){
+        const x = i*xStep;
+        // random walk with clamp
+        y = clamp(y + (rand()-0.5)*h*0.20, h*0.10, h*0.90);
+        d += (i===0 ? `M ${x.toFixed(1)} ${y.toFixed(1)}` : ` L ${x.toFixed(1)} ${y.toFixed(1)}`);
+      }
+      return d;
+    }
+
+    function makeSparkSvg(rand){
+      const w=520, h=140;
+      const d1 = sparkPath(rand, w, h, 18);
+      const d2 = sparkPath(rand, w, h, 18);
+      // no external CSS: keep inline (PDF render reliability)
+      return `
+        <svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="g1" x1="0" x2="1" y1="0" y2="0">
+              <stop offset="0%" stop-color="rgba(124,58,237,.85)"/>
+              <stop offset="100%" stop-color="rgba(34,197,94,.75)"/>
+            </linearGradient>
+            <linearGradient id="g2" x1="0" x2="1" y1="0" y2="0">
+              <stop offset="0%" stop-color="rgba(15,23,42,.35)"/>
+              <stop offset="100%" stop-color="rgba(15,23,42,.10)"/>
+            </linearGradient>
+          </defs>
+          <path d="${d2}" fill="none" stroke="url(#g2)" stroke-width="6" stroke-linecap="round" opacity="0.45"/>
+          <path d="${d1}" fill="none" stroke="url(#g1)" stroke-width="4" stroke-linecap="round"/>
+          ${Array.from({length: 6}).map((_,i)=>{
+            const y = ((i+1)/7)*h;
+            return `<line x1="0" y1="${y}" x2="${w}" y2="${y}" stroke="rgba(15,23,42,.08)" stroke-width="1"/>`;
+          }).join("")}
+        </svg>
+      `;
+    }
+
+    function buildPageHTML(rand, pageNo, totalPages, docSeed){
+      const mainTitle = titleLine(rand);
+      const sub = paragraph(rand, 2);
+      const tag = pick(rand, TAGS);
+      const docId = fakeId(rand);
+      const date = shortDate(rand);
+
+      const badges = [
+        {t: pick(rand, SECTIONS), cls:"accent"},
+        {t: pick(rand, ["PRIORITY","STANDARD","OPTIONAL","FOLLOW-UP","CHECKLIST"]), cls: pick(rand, ["","green","warn"])},
+        {t: pick(rand, ["v1.0","v1.1","v2.0","rev.A","rev.B"]), cls:""}
+      ];
+
+      const kpis = [
+        {label: pick(rand, ["종합 지수","정합성 점수","리스크 버퍼","처리 효율","가시성"]), value: num(rand), delta: pick(rand, ["+","-"]) + (Math.floor(rand()*18)+1) + "%"},
+        {label: pick(rand, ["전환율","누적 항목","누락률","정책 커버리지","오류율"]), value: pct(rand), delta: pick(rand, ["+","-"]) + (Math.floor(rand()*12)+1) + "%"},
+        {label: pick(rand, ["누적 이벤트","검증 건수","샘플 수","대상 범위","상태 변경"]), value: num(rand), delta: pick(rand, ["+","-"]) + (Math.floor(rand()*25)+1) + "%"},
+      ];
+
+      const rows = Array.from({length: 6}, () => ({
+        a: pick(rand, ["항목","요건","규칙","사례","조건","기준"]) + " " + pick(rand, ["A","B","C","D","E"]),
+        b: pick(rand, ["유지","검토","강화","완화","대체","보류"]),
+        c: pick(rand, ["높음","보통","낮음"]),
+        d: pct(rand)
+      }));
+
+      const rightNote = paragraph(rand, 3);
+      const leftNote = paragraph(rand, 4);
+
+      // mini bars
+      const bar1 = Math.floor(rand()*60)+25;
+      const bar2 = Math.floor(rand()*60)+25;
+      const bar3 = Math.floor(rand()*60)+25;
+
+      const wm = pick(rand, ["INTERNAL","DRAFT","CONFIDENTIAL","REVIEW COPY","FOR DISCUSSION"]);
+
+      return `
+        <div class="page" data-page="${pageNo}">
+          <div class="watermark">${wm}</div>
+
+          <div class="p-top">
+            <div class="brand">
+              <div class="logo"></div>
+              <div class="meta">
+                <div class="name">RandomOps Studio</div>
+                <div class="tag">Generated Report · seed=${docSeed}</div>
+              </div>
+            </div>
+            <div class="docmeta">
+              <div class="pill">${tag}</div>
+              <div>Doc ID: ${docId}</div>
+              <div>Date: ${date}</div>
+            </div>
+          </div>
+
+          <div class="p-title">
+            <div>
+              <h1>${mainTitle}</h1>
+              <div class="sub">${sub}</div>
+            </div>
+            <div class="badges">
+              ${badges.map(b=>`<div class="badge ${b.cls}">${b.t}</div>`).join("")}
+            </div>
+          </div>
+
+          <div class="content">
+            <div class="leftCol">
+              <div class="card">
+                <h2>${pick(rand, ["핵심 요약","상태 개요","관찰 메모","결론 요지"])}</h2>
+                <p>${leftNote}</p>
+
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>항목</th>
+                      <th>처리</th>
+                      <th>등급</th>
+                      <th>진행</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${rows.map(r => `
+                      <tr>
+                        <td>${r.a}</td>
+                        <td>${r.b}</td>
+                        <td>${r.c}</td>
+                        <td>${r.d}</td>
+                      </tr>
+                    `).join("")}
+                  </tbody>
+                </table>
+
+                <div class="twoCol">
+                  <div class="card">
+                    <h2>${pick(rand, ["권고 사항","후속 액션","체크포인트"])}</h2>
+                    <p>${paragraph(rand, 3)}</p>
+                  </div>
+                  <div class="card">
+                    <h2>${pick(rand, ["주의/리스크","가정/제약","메모"])}</h2>
+                    <p>${paragraph(rand, 3)}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card" style="margin-top: 12px;">
+                <h2>${pick(rand, ["메트릭 스냅샷","추세 보기","간이 시각화"])}</h2>
+                <div class="chart">
+                  ${makeSparkSvg(rand)}
+                </div>
+                <p style="margin-top:10px;">${paragraph(rand, 2)}</p>
+              </div>
+            </div>
+
+            <div class="sideStack">
+              ${kpis.map((k, idx) => `
+                <div class="card">
+                  <div class="kpi">
+                    <div>
+                      <div class="l">${k.label}</div>
+                      <div class="v">${k.value}</div>
+                      <div class="d">변동: ${k.delta} · 기준: ${pick(rand, ["최근 7일","최근 30일","분기 누적","연간 누적"])}</div>
+                      <div class="miniBar"><div style="width:${[bar1,bar2,bar3][idx]}%"></div></div>
+                    </div>
+                    <div class="badge ${pick(rand, ["accent","green","warn",""])}">${pick(rand, ["OK","WATCH","RISK","INFO"])}</div>
+                  </div>
+                </div>
+              `).join("")}
+
+              <div class="card">
+                <h2>${pick(rand, ["간단 메모","실무 체크","부록 코멘트"])}</h2>
+                <p>${rightNote}</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="footer">
+            <div>RandomOps Studio · Generated Placeholder Document</div>
+            <div>Page ${pageNo} / ${totalPages}</div>
+          </div>
+        </div>
+      `;
+    }
+
+    // ---------- UI actions ----------
+    const elHost = document.getElementById("pagesHost");
+    const elPreview = document.getElementById("previewThumb");
+    const elStatus = document.getElementById("statusText");
+    const elBar = document.getElementById("progressBar");
+    const elRight = document.getElementById("statusRight");
+
+    function setProgress(p, text){
+      const pct = Math.floor(p*100);
+      elBar.style.width = pct + "%";
+      elRight.textContent = pct + "%";
+      if (text) elStatus.textContent = text;
+    }
+
+    function getPageRange(){
+      const min = parseInt(document.getElementById("minPages").value || "10", 10);
+      const max = parseInt(document.getElementById("maxPages").value || "20", 10);
+      const a = clamp(min, 1, 50);
+      const b = clamp(max, 1, 50);
+      return { min: Math.min(a,b), max: Math.max(a,b) };
+    }
+
+    function buildPages({ onlyFirst=false } = {}){
+      const { min, max } = getPageRange();
+      const seedInput = document.getElementById("seed").value;
+      const { seed, rand } = makeRng(seedInput);
+      const total = onlyFirst ? 1 : (Math.floor(rand()*(max-min+1))+min);
+
+      elHost.innerHTML = "";
+      elHost.classList.add("rendering");
+
+      for(let i=1;i<=total;i++){
+        elHost.insertAdjacentHTML("beforeend", buildPageHTML(rand, i, total, seed));
+      }
+
+      elHost.classList.remove("rendering");
+      return { seed, total };
+    }
+
+    async function renderFirstPreview(){
+      setProgress(0.02, "미리보기 페이지 생성 중...");
+      const { seed, total } = buildPages({ onlyFirst:true });
+
+      const first = elHost.querySelector(".page");
+      setProgress(0.15, "미리보기 렌더링 중...");
+
+      const canvas = await html2canvas(first, {
+        scale: 1.8,
+        backgroundColor: "#ffffff",
+        useCORS: true
+      });
+
+      const dataUrl = canvas.toDataURL("image/png");
+      elPreview.innerHTML = `<img alt="preview" src="${dataUrl}" style="width:100%;height:auto;border-radius:12px;display:block;">`;
+      setProgress(1, `미리보기 완료 (seed=${seed})`);
+    }
+
+    async function generatePdfAndDownload(){
+      setProgress(0.01, "페이지 생성 중...");
+      const { seed, total } = buildPages({ onlyFirst:false });
+
+      setProgress(0.05, `PDF 생성 준비 중... (총 ${total}p, seed=${seed})`);
+
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF({ orientation: "p", unit: "pt", format: "a4" });
+      const pages = Array.from(elHost.querySelectorAll(".page"));
+
+      // A4 pt size
+      const pageW = pdf.internal.pageSize.getWidth();
+      const pageH = pdf.internal.pageSize.getHeight();
+
+      for(let i=0;i<pages.length;i++){
+        const p = pages[i];
+        setProgress(0.05 + 0.90*(i/pages.length), `렌더링 중... (${i+1}/${pages.length})`);
+
+        // 캡처
+        const canvas = await html2canvas(p, {
+          scale: 2.0,
+          backgroundColor: "#ffffff",
+          useCORS: true
+        });
+
+        const imgData = canvas.toDataURL("image/jpeg", 0.92);
+
+        if (i > 0) pdf.addPage();
+        // Fit to A4
+        pdf.addImage(imgData, "JPEG", 0, 0, pageW, pageH, undefined, "FAST");
+      }
+
+      setProgress(0.98, "저장 중...");
+      const filename = `random-placeholder-report_${seed}_${total}p.pdf`;
+      pdf.save(filename);
+      setProgress(1, `완료: ${filename}`);
+    }
+
+    document.getElementById("btnPreview").addEventListener("click", () => {
+      renderFirstPreview().catch(err => {
+        console.error(err);
+        setProgress(1, "오류: 미리보기 실패 (콘솔 확인)");
+      });
+    });
+
+    document.getElementById("btnDownload").addEventListener("click", () => {
+      generatePdfAndDownload().catch(err => {
+        console.error(err);
+        setProgress(1, "오류: PDF 생성 실패 (콘솔 확인)");
+      });
+    });
+
+    // default: make a preview once on load
+    renderFirstPreview().catch(()=>{});
+  </script>
+</body>
+</html>
